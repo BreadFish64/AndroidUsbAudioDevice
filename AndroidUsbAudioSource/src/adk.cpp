@@ -116,6 +116,7 @@ bool AndroidOpenAccessory::ConnectToAccessory() {
         } else {
             break;
         }
+        fmt::print("Attempting to connect to device, {} tries left\n", tries);
         std::this_thread::sleep_for(1s);
     }
     if (handle) libusb_claim_interface(handle, 0);
@@ -180,7 +181,7 @@ bool AndroidOpenAccessory::SendSync(std::span<const unsigned char> data, unsigne
     if (disconnected) return false;
     auto ret = libusb_bulk_transfer(handle, out_endpoint, (unsigned char*)data.data(), data.size(),
                                     nullptr, timeout);
-    disconnected |= ret == LIBUSB_TRANSFER_NO_DEVICE;
+    disconnected |= ret == LIBUSB_ERROR_NO_DEVICE;
     return ret < 0;
 }
 
@@ -190,7 +191,7 @@ std::span<unsigned char> AndroidOpenAccessory::RecieveSync(std::span<unsigned ch
     int xfr_length;
     auto ret =
         libusb_bulk_transfer(handle, in_endpoint, data.data(), data.size(), &xfr_length, timeout);
-    disconnected |= ret == LIBUSB_TRANSFER_NO_DEVICE;
+    disconnected |= ret == LIBUSB_ERROR_NO_DEVICE;
     if (ret < 0) return {};
     return data.first(xfr_length);
 }
