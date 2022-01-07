@@ -50,11 +50,16 @@ PaStream* InitPortAudio() {
         auto global_idx = Pa_HostApiDeviceIndexToDeviceIndex(api_idx, i);
         const auto* device = Pa_GetDeviceInfo(global_idx);
         
-        if (std::string{device->name}.find("VB-Audio") != std::string::npos &&
+        // First - try to get Virtual Cable, if couldn't - try to get VoiceMeeter(or something else with VB-Audio in the name)
+        if (std::string{device->name}.find("VB-Audio Virtual Cable") != std::string::npos &&
             device->maxInputChannels > 0) {
             device_info = device;
             device_idx = global_idx;
             break;
+        } else if (std::string{ device->name }.find("VB-Audio") != std::string::npos &&
+            device->maxInputChannels > 0) {
+            device_info = device;
+            device_idx = global_idx;
         }
     }
     if (!device_info) {
